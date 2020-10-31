@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+
+    <title>Hello, world!</title>
+</head>
+
+<body>
+    <form action="#" enctype="multipart/form-data">
+        <div class="card text-center" style="padding: 10%;">
+
+            <div class="card-body">
+                <h5 class="card-title">Hola Mundo</h5>
+                <p class="card-text">Neider Orlando Tunjuelo Herrera.</p>
+                <div class="custom-file mb-3">
+                    <!--  -->
+                    <input type="file" class="custom-file-input" id="archivo" accept=".csv,.xlsx,.xls">
+                    <!--  -->
+                    <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
+                    <div class="invalid-feedback">Example invalid custom file feedback</div>
+                </div>
+                <button type="button" class="btn btn-dark" onclick="cargarExcel()">Cargar Excel</button>
+                <button type="button" class="btn btn-dark" onclick="registrarExcel()" disabled
+                    id="btn_registrar">Submit</button>
+                <a href="listadoi.php" class="btn btn-dark" role="button" aria-pressed="true">Lista</a>
+            </div>
+            <div class="" id="div_tabla"></div>
+        </div>
+    </form>
+    <!-- Optional JavaScript; choose one of the two! -->
+
+</body>
+
+</html>
+<!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+<script>
+    $('input[type="file"]').on('change', function () {
+        let ext = $(this).val().split('.').pop();
+        if ($(this).val() != '') {
+            if (ext == "xls" || ext == "xlsx" || ext == "csv") {
+            }
+            else {
+                $(this).val('');
+                Swal.fire("Mensaje De Error", "Extensión no permitida: " + ext + "", "error");
+            }
+        }
+    });
+    function cargarExcel() {
+        let excel = $('#archivo').val();
+        if (excel === "") {
+            return Swal.fire("Mensaje De Error", "Seleccione un archivo de tipo Excel", "warning");
+
+
+        }
+        let formData = new FormData;
+        let files = $('#archivo')[0].files[0];
+        formData.append('archivoexcel', files);
+        $.ajax({
+            url: 'importar_excel_ajax.php',
+            type: 'post',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (resp) {
+                $('#div_tabla').html(resp);
+                document.getElementById('btn_registrar').disabled = false;
+            }
+        });
+        return false;
+    }
+    function registrarExcel() {
+        let contador = 0;
+        let arreglo_id = new Array();
+        let arreglo_nombre = new Array();
+        let arreglo_description = new Array();
+
+        $('#table_detalle tbody#tbody_table_detalle tr').each(function () {
+            arreglo_id.push($(this).find('td').eq(0).text());
+            arreglo_nombre.push($(this).find('td').eq(1).text());
+            arreglo_description.push($(this).find('td').eq(2).text());
+            contador++;
+        });
+        if (contador == 0) {
+            return Swal.fire("Mensaje De advertencia", "La tabla tiene que tener como minimo 1 dato", "warning");
+        }
+        let idTable = arreglo_id.toString();
+        let nombreTable = arreglo_nombre.toString();
+        let descriptionTable = arreglo_description.toString();
+
+        $.ajax({
+            url: 'controlador_registro.php',
+            type: 'post',
+            data: {
+                id: idTable,
+                nom: nombreTable,
+                desc: descriptionTable
+            }
+        }).done(function (resp) {
+            if (resp == 1) {
+                Swal.fire("Mensaje De advertencia", "Datos Guardados Correctamente", "succes");
+            } else {
+                Swal.fire("Mensaje De error", "Datos No Registrados", "error");
+
+            }
+
+        })
+
+
+        // alert(arreglo_id+" ,"+arreglo_nombre+" ,"+arreglo_description);
+
+    }
+</script>
